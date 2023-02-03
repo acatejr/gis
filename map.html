@@ -1,0 +1,95 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Code Exercise A</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      .esri-popup__main-container {
+        background-color: white;
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        z-index: 1000;
+        border: 3px solid white;
+        box-shadow: 3px 3px 10px black;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.25/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/layers/FeatureLayer",
+        "esri/views/MapView",
+        "esri/widgets/Legend"
+      ], (Map, FeatureLayer, MapView, Legend) => {
+        // Create the map
+        const map = new Map({
+          basemap: "gray-vector"
+        });
+
+        // Create the MapView
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-95.7129, 37.0902],
+          zoom: 4.5
+        });
+
+        /*************************************************************
+         * The PopupTemplate content is the text that appears inside the
+         * popup. {fieldName} can be used to reference the value of an
+         * attribute of the selected feature. HTML elements can be used
+         * to provide structure and styles within the content. The
+         * fieldInfos property is an array of objects (each object representing
+         * a field) that is use to format number fields and customize field
+         * aliases in the popup and legend.
+         **************************************************************/
+
+        const template = {
+          // autocasts as new PopupTemplate()
+          title: "{STATE_NAME} ({STATE_ABBR})",
+          content: "<div class='esri-popup__main-container'>Hello</div>"
+        //   content: [
+        //     {
+        //       // It is also possible to set the fieldInfos outside of the content
+        //       // directly in the popupTemplate. If no fieldInfos is specifically set
+        //       // in the content, it defaults to whatever may be set within the popupTemplate.
+        //       type: "fields",
+        //       fieldInfos: [
+        //         {
+        //           fieldName: "STATE_NAME",
+        //           label: "State Name"
+        //         }
+        //       ]
+        //     }
+        //  ]
+        };
+
+        // Reference the popupTemplate instance in the
+        // popupTemplate property of FeatureLayer
+        const featureLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
+          definitionExpression: "NOT STATE_ABBR IN ('AK', 'HI', 'DC')",
+          popupTemplate: template
+        });
+        map.add(featureLayer);
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
