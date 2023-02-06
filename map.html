@@ -24,6 +24,13 @@
         box-shadow: 3px 3px 10px black;
       }
 
+      .esri-feature__main-container {
+        /* border-left: solid blue .5rem;
+        border-right: solid blue .5rem;
+        padding: 0; */
+        background-color: blue;
+      }
+
       .esri-popup__collapse-icon {
         visibility: hidden;
       }
@@ -97,51 +104,7 @@
           zoom: 4.5
         });
 
-        const template = {
-          title: "{STATE_NAME} ({STATE_ABBR})"
-        }
-
-        function getUnder20(graphic) {
-          console.dir(graphic)
-          return ""
-        }
-
-        let tdStyle = 'padding-left: 45px; padding-right: 5px; text-align: right; border-right-width: 1px; border-right-style: solid;'
-        let popupContent = `
-        <div style='font-weight: bold; text-align: center; font-size: 1.2em; !important'>{SUB_REGION} Sub Region</div>
-        <table width='100%' style='background-color: white;'>
-          <tbody>
-            <tr><td style='${tdStyle}'>Population</td><td>{$feature.population}</td><td>&nbsp;</td></tr>
-            <tr><td style='${tdStyle}'>Area</td><td>{SQMI}</td><td> mi&sup2;</td></tr>
-            <tr><td style='${tdStyle}'>Pop./Area</td><td>{POP_SQMI}</td><td>/mi&sup2;</td></tr>
-          </tbody>
-        </table>
-        <div style='font-weight: bold; text-align: center; font-size: 1.2em; !important'>Age Ranges</div>
-        <table>
-          <thead>
-            <tr>
-              <th style='text-align: center;'>Less Than 20</th>
-              <th style='text-align: center;'>21 - 64</th>
-              <th style='text-align: center;'>More than 65</th>
-            </tr>
-            <tr>
-              <td></td>
-            </tr>
-          </thead>
-        </table>
-        `
-
-        template.content = popupContent
-
-        // Reference the popupTemplate instance in the
-        // popupTemplate property of FeatureLayer
-        var expressionInfos = [
-          {
-            name: "under20",            
-            expression: `return($feature.AGE_UNDER5)`
-          }
-        ]
-
+        
         const states = new FeatureLayer({
           url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
           definitionExpression: "NOT STATE_ABBR IN ('AK', 'HI', 'DC')",
@@ -151,12 +114,12 @@
               {
                 name: "population",
                 label: "Population",
-                expression: "$feature.POPULATION"
+                expression: "Text($feature.POPULATION, '#,##')"
               },
               {
                 name: "area",
                 title: "Area",
-                expression: "Round($feature.SQMI, 2)",
+                expression: "Text(Round($feature.SQMI, 2), '#,##.##')",
               },
               {
                 name: "pop_density",
@@ -166,15 +129,15 @@
               {
                 name: "under20",
                 title: "Less Than 20",
-                expression: "$feature.AGE_UNDER5 + $feature.AGE_5_9 + $feature.AGE_10_14 + $feature.AGE_15_19"
+                expression: "Text($feature.AGE_UNDER5 + $feature.AGE_5_9 + $feature.AGE_10_14 + $feature.AGE_15_19, '#,##')"
               },
               {
                 name: "ages_21_64",
-                expression: "$feature.AGE_20_24 + $feature.AGE_25_34 + $feature.AGE_35_44 + $feature.AGE_55_64"
+                expression: "Text($feature.AGE_20_24 + $feature.AGE_25_34 + $feature.AGE_35_44 + $feature.AGE_55_64, '#,##')"
               },
               {
                 name: "over65",
-                expression: "$feature.AGE_65_74 + $feature.AGE_75_84 + $feature.AGE_85_UP"
+                expression: "Text($feature.AGE_65_74 + $feature.AGE_75_84 + $feature.AGE_85_UP, '#.##')"
               },
             ],
             content: [

@@ -155,3 +155,50 @@ const template = {
     <div id="viewDiv"></div>
   </body>
 </html>
+
+let tdStyle = 'padding-left: 45px; padding-right: 5px; text-align: right; border-right-width: 1px; border-right-style: solid;'
+        let popupContent = `
+        <div style='font-weight: bold; text-align: center; font-size: 1.2em; !important'>{SUB_REGION} Sub Region</div>
+        <table width='100%' style='background-color: white;'>
+          <tbody>
+            <tr><td style='${tdStyle}'>Population</td><td>{$feature.population}</td><td>&nbsp;</td></tr>
+            <tr><td style='${tdStyle}'>Area</td><td>{SQMI}</td><td> mi&sup2;</td></tr>
+            <tr><td style='${tdStyle}'>Pop./Area</td><td>{POP_SQMI}</td><td>/mi&sup2;</td></tr>
+          </tbody>
+        </table>
+        <div style='font-weight: bold; text-align: center; font-size: 1.2em; !important'>Age Ranges</div>
+        <table>
+          <thead>
+            <tr>
+              <th style='text-align: center;'>Less Than 20</th>
+              <th style='text-align: center;'>21 - 64</th>
+              <th style='text-align: center;'>More than 65</th>
+            </tr>
+            <tr>
+              <td></td>
+            </tr>
+          </thead>
+        </table>
+        `
+
+        const template = {
+          title: "{STATE_NAME} ({STATE_ABBR})"
+        }
+
+        function getUnder20(graphic) {
+          console.dir(graphic)
+          return ""
+        }
+
+        
+
+        template.content = popupContent
+
+        // Reference the popupTemplate instance in the
+        // popupTemplate property of FeatureLayer
+        var expressionInfos = [
+          {
+            name: "under20",            
+            expression: `return($feature.AGE_UNDER5)`
+          }
+        ]
