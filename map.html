@@ -25,9 +25,6 @@
       }
 
       .esri-feature__main-container {
-        /* border-left: solid blue .5rem;
-        border-right: solid blue .5rem;
-        padding: 0; */
         background-color: blue;
       }
 
@@ -51,18 +48,39 @@
       }
 
       .border {
-        background-color: black;
+        background-color: #808080;
         height: .3em;
       }
 
       .thin-border {
-        background-color: black;
+        background-color: #808080;
         height: .15em;
       }
 
       .demographics {
         background-color: white;
         width: 100%;
+        border-spacing: 0;
+        border-collapse: collapse;
+      }
+
+      .col-header {
+        text-align: right;
+        border-right: .1em solid black;
+      }
+
+      .demographics-units {
+        text-align: left;
+        padding-left: 0px;
+      }
+
+      .demographics-top {
+        border-top: solid .2em #808080;
+      }
+
+      .demographics-value {
+        width: 30%;
+        text-align: right;
       }
 
       .demo-label {
@@ -72,12 +90,6 @@
     </style>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
-
-    <script type="text/plain" id="under20">
-      var under20 = $feature.AGE_UNDER5;
-      return(under20);
-    </script>
-
     <script src="https://js.arcgis.com/4.25/"></script>
 
     <script>
@@ -137,31 +149,24 @@
               },
               {
                 name: "over65",
-                expression: "Text($feature.AGE_65_74 + $feature.AGE_75_84 + $feature.AGE_85_UP, '#.##')"
+                expression: "Text($feature.AGE_65_74 + $feature.AGE_75_84 + $feature.AGE_85_UP, '#,##')"
               },
             ],
             content: [
               {
                 type: "text",
-                text: "{SUB_REGION} Sub Region"
-              },
-              {
-                type: "text",
-                text: "<div class='border'></div>"
-              },
-              {
-                type: "text",
                 text: `
                 <table class='demographics'>
-                <tr>
-                  <td class='demo-label' align=right>Population&nbsp;</td><td align=left style='padding: 0;'>&nbsp;{expression/population}</td><td>&nbsp;</td>                  
-                </tr>
-                <tr>
-                  <td align=right class='demo-label'>Area&nbsp;</td><td align=left style='padding: 0;'>&nbsp;{expression/area}</td><td>mi&sup2;</td>
-                </tr>
-                <tr>
-                  <td align=right class='demo-label'>Pop./Area&nbsp;</td><td align=left>&nbsp;{expression/pop_density}</td><td>/mi&sup2;</td>
-                </tr>
+                  <caption>{SUB_REGION} Sub Region</caption>
+                  <tr class='demographics-top'>
+                    <td class='col-header'>Population&nbsp;</td><td class='demographics-value'>{expression/population}&nbsp;</td><td class='demographics-units'>&nbsp;</td>                  
+                  </tr>
+                  <tr>
+                    <td class='col-header'>Area&nbsp;</td><td class='demographics-value'>{expression/area}&nbsp;</td><td class='demographics-units'>mi&sup2;</td>
+                  </tr>
+                  <tr>
+                    <td class='col-header'>Pop./Area&nbsp;</td><td class='demographics-value'>{expression/pop_density}&nbsp;</td><td class='demographics-units'>/mi&sup2;</td>
+                  </tr>
                 </table>
                 `
               },
