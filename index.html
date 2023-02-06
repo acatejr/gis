@@ -1,144 +1,43 @@
-<html>
+<html lang="en">
   <head>
+    <!--
+      Explanation:
+      I started looking into the 4-color issue and found that it is a based on the four-color problem.  The theorem of the 
+      same name asserts that four colors can be used, in the case of this map, to color all polygons in the map with now two 
+      neighboring polygons having the same color.
+
+      I spent a fair amount of time trying to learn about the problem/theorem and instead of trying to re-invent the wheel, 
+      tried to implement an alrogithm based on information at the site:
+      https://subscription.packtpub.com/book/application-development/9781788833738/6/ch06lvl1sec49/coloring
+      One of the reasons I pursued this path is because I was not familiar with the 4-color problem and trying to implement code 
+      this way helped me to understand the problem better.
+
+      That code is commented out below because the version I tried to create did not work completely.  There were a couple of issues 
+      that I ran out of time trying to figure out.  Also, my approach did not incorporate the original code which would have been my next 
+      step.
+
+      I also spent time on the popup rendering part of the problem which can be found below and is running.  However, I found that I had to change
+      the arcgis javascript api version number to 2.5.  I am not sure why there was an issue there, but I was working off of the docs on the ESRI site 
+      for the javascript api and using their examples to try and re-orient myself to the api.  The problem's original code still works even after
+      changing to the newer api version number.  One of the more interesting things to learn in all of this was ESRI's Arcade Javascrpipt features.  
+      Arcade seems quite useful, but requires time to understand it's syntax and how it affects rendering (if it does) and the nuance of using methods 
+      like Text and Round.
+    -->
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <title>Code Exercise A</title>
-    
-    <link rel="stylesheet" href="https://js.arcgis.com/4.20/esri/themes/light/main.css" />
-    <script src="https://js.arcgis.com/4.20/"></script>
-    <script>
-    /**
- * Tasks:
- * 1. Fix the algorithm so that only 4 colors are used instead of 5
- *    - Touching states may not be the same color
- * 2. Add popups to the states and style them to match the provided design: `example-popup-style`
- *    - Note the colored section matches the color of the state
- * 3. Remove `example-design` div
- */
-require([
-  "esri/geometry/geometryEngine",
-  "esri/Graphic",
-  "esri/layers/FeatureLayer",
-  "esri/layers/GraphicsLayer",
-  "esri/Map",
-  "esri/views/MapView"
-], (
-  geometryEngine,
-  Graphic,
-  FeatureLayer,
-  GraphicsLayer,
-  Map,
-  MapView
-) => {
-  const map = new Map({
-    basemap: "topo-vector"
-  });
 
-  const view = new MapView({
-    container: "viewDiv",
-    constraints: {
-      snapToZoom: false
-    },
-    map: map,
-    zoom: 4.5,
-    center: [-95.7129, 37.0902]
-  });
-
-  const template = {
-    title: "{STATE_NAME} ({STATE_ABBR})",
-    content: [
-        {
-            type: "text",
-            text: "{SUB_REGION} Sub Region"
-        },
-        {
-        type: "fields",
-        fieldInfos: [
-            {
-            fieldName: "POPULATION",
-            label: "Population",
-            format: {
-                digitSeparator: true
-            }
-            },
-            {
-            fieldName: "SQMI",
-            label: "Area",
-            format: {
-                digitSeparator: true
-            }
-            },
-            {
-            fieldName: "POP_SQMI",
-            label: "Pop./Area",
-            format: {
-                digitSeparator: true
-            }
-            }              
-        ]
-        },
-        {
-            type: "text",
-            text: "Age Ranges"
-        },
-        {
-            type: "text",
-            text: "<table><tr><td>Less Than 20</td><td>21 - 64</td><td>More than 65</td></tr></table>",              
-            className: "ages"
-        }
-    ]       
-  };
-
-  const states = new FeatureLayer({
-    url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
-    definitionExpression: "NOT STATE_ABBR IN ('AK', 'HI', 'DC')",
-    popupTemplate: template
-  });
-    
-// //   states.queryFeatures().then(({ features }) => {
-// //     const colors = ["red", "blue", "yellow", "green", "purple"];
-// //     const coloredStates = [];
-// //     for (const feat of features) {
-// //       const touchingStates = features
-// //         .filter(f => geometryEngine.touches(feat.geometry, f.geometry))
-// //       const colorsOfTouchingStates = coloredStates
-// //         .filter(cs => touchingStates.find(ts => ts.attributes.STATE_FIPS === cs.attributes.STATE_FIPS))
-// //         .map(cs => cs.attributes.color)
-// //       const color = colors.find(c => !colorsOfTouchingStates.includes(c) );
-// //       coloredStates.push(new Graphic({
-// //         attributes: {
-// //           ...feat.attributes,
-// //           color
-// //         },
-// //         geometry: feat.geometry,
-// //         symbol: {
-// //           type: "simple-fill",
-// //           color,
-// //           outline: {
-// //             width: 1,
-// //             color: "white"
-// //           }
-// //         }
-// //       }))
-// //     }
-// //     map.add(new GraphicsLayer({
-// //       graphics: coloredStates,
-// //       opacity: .5
-// //     }));
-//   });
-});
-
-
-    </script>
     <style>
-    html, body, #viewDiv {
+      html,
+      body,
+      #viewDiv {
         padding: 0;
         margin: 0;
         height: 100%;
         width: 100%;
-    }
+      }
 
-    .example-popup-style {
+      .esri-popup__main-container {
         background-color: white;
         position: absolute;
         bottom: 5px;
@@ -146,8 +45,266 @@ require([
         z-index: 1000;
         border: 3px solid white;
         box-shadow: 3px 3px 10px black;
-    }
+      }
+
+      .esri-feature__main-container {
+        background-color: blue;
+      }
+
+      .esri-popup__collapse-icon {
+        visibility: hidden;
+      }
+
+      .esri-popup__footer {
+        visibility: hidden;
+        height: 0;
+      }
+
+      .esri-feature-content {
+        text-align: center;
+        font-weight: bold;
+        background-color: silver;
+      }
+
+      .esri-feature__content-element {
+        margin-bottom: 0 !important;
+      }
+
+      .border {
+        background-color: #808080;
+        height: .3em;
+      }
+
+      .thin-border {
+        background-color: #808080;
+        height: .15em;
+      }
+
+      .demographics {
+        background-color: white;
+        width: 100%;
+        border-spacing: 0;
+        border-collapse: collapse;
+      }
+
+      .col-header {
+        text-align: right;
+        border-right: .1em solid black;
+      }
+
+      .demographics-units {
+        text-align: left;
+        padding-left: 0px;
+      }
+
+      .demographics-top {
+        border-top: solid .2em #808080;
+      }
+
+      .demographics-value {
+        width: 30%;
+        text-align: right;
+      }
+
+      .demo-label {
+        border-right: 1px solid;
+        padding-right: 1px;
+      }
     </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.25/"></script>
+
+    <script>
+      require([
+        "esri/geometry/geometryEngine",
+        "esri/Map",
+        "esri/layers/FeatureLayer",
+        "esri/views/MapView",
+        "esri/widgets/Legend",
+        "esri/layers/GraphicsLayer",
+        "esri/Graphic",
+        "esri/popup/ExpressionInfo"
+      ], (geometryEngine, Map, FeatureLayer, MapView, Legend, GraphicsLayer, Graphic, ExpressionInfo) => {
+        // Create the map
+        const map = new Map({
+          basemap: "gray-vector"
+        });
+
+        // Create the MapView
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-95.7129, 37.0902],
+          zoom: 4.5
+        });
+
+        
+        const states = new FeatureLayer({
+          url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
+          definitionExpression: "NOT STATE_ABBR IN ('AK', 'HI', 'DC')",
+          popupTemplate: {
+            title: "{STATE_NAME} ({STATE_ABBR})",
+            expressionInfos: [
+              {
+                name: "population",
+                label: "Population",
+                expression: "Text($feature.POPULATION, '#,##')"
+              },
+              {
+                name: "area",
+                title: "Area",
+                expression: "Text(Round($feature.SQMI, 2), '#,##.##')",
+              },
+              {
+                name: "pop_density",
+                title: "Pop./Area",
+                expression: "Round($feature.POPULATION / $feature.SQMI, 1)"
+              },
+              {
+                name: "under20",
+                title: "Less Than 20",
+                expression: "Text($feature.AGE_UNDER5 + $feature.AGE_5_9 + $feature.AGE_10_14 + $feature.AGE_15_19, '#,##')"
+              },
+              {
+                name: "ages_21_64",
+                expression: "Text($feature.AGE_20_24 + $feature.AGE_25_34 + $feature.AGE_35_44 + $feature.AGE_55_64, '#,##')"
+              },
+              {
+                name: "over65",
+                expression: "Text($feature.AGE_65_74 + $feature.AGE_75_84 + $feature.AGE_85_UP, '#,##')"
+              },
+            ],
+            content: [
+              {
+                type: "text",
+                text: `
+                <table class='demographics'>
+                  <caption>{SUB_REGION} Sub Region</caption>
+                  <tr class='demographics-top'>
+                    <td class='col-header'>Population&nbsp;</td><td class='demographics-value'>{expression/population}&nbsp;</td><td class='demographics-units'>&nbsp;</td>                  
+                  </tr>
+                  <tr>
+                    <td class='col-header'>Area&nbsp;</td><td class='demographics-value'>{expression/area}&nbsp;</td><td class='demographics-units'>mi&sup2;</td>
+                  </tr>
+                  <tr>
+                    <td class='col-header'>Pop./Area&nbsp;</td><td class='demographics-value'>{expression/pop_density}&nbsp;</td><td class='demographics-units'>/mi&sup2;</td>
+                  </tr>
+                </table>
+                `
+              },
+              {
+                type: "text",
+                text: "<div class='border'></div>"
+              },
+              {
+                type: "text",
+                text: "<div style='text-align: center; background-color: #cfd3d4;'>Age Ranges</div>"
+              },
+              {
+                type: "text",
+                text: "<div class='thin-border'></div>"
+              },
+              {
+                type: "text",
+                text: `
+                <table width='100%' style='background-color: #ededed;'>
+                  <tbody>
+                    <tr style='background-color: #ededed; border-style: none;'>
+                      <td style='text-align: center; border-style: none;'>Less Than 20</td>
+                      <td style='text-align: center; border-style: none;'>21 -64</td>
+                      <td style='text-align: center; border-style: none;'>More than 65</td>
+                    </tr>                    
+
+                    <tr style='background-color: white; text-align: center;'>
+                      <td style='border-right: solid; border-right-width: 1px;'>{expression/under20}</td>
+                      <td style='border-right: solid; border-right-width: 1px;'>{expression/ages_21_64}</td>
+                      <td style=''>{expression/over65}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                `
+              }
+
+            ]
+          }
+        });
+
+        /**
+         * The commented code is based on this site:
+         * Ref: https://subscription.packtpub.com/book/application-development/9781788833738/6/ch06lvl1sec49/coloring
+        */
+        // states.queryFeatures().then(({ features }) => {
+        //   const coloredStates = []          
+        //   let colors = new Array(features.length).fill(-1)
+        //   colors[0] = 0
+        //   let stateCount = 0
+
+        //   for (const feat of features) {
+        //     let availability = new Array(features.length).fill(true) 
+        //     const neighbors = features.filter(f => geometryEngine.touches(feat.geometry, f.geometry))
+            
+        //     let neighborIdx = 0
+        //     let colorIdx = 0
+        //     for (const neighbor of neighbors) {              
+        //       colorIdx = colors[neighborIdx]
+        //       if (colorIdx >= 0) {
+        //         availability[colorIdx] = false
+        //       }
+        //       neighborIdx++
+        //     }
+
+        //     colorIdx = 0
+        //     for (let i = 0; i < availability.length; i++) {
+        //       if (availability[i] === true) {
+        //         colorIdx = i
+        //         break
+        //       }
+        //     }
+
+        //     colors[stateCount] = colorIdx
+        //     stateCount++
+        //   }
+
+        // })
+        
+ 
+        states.queryFeatures().then(({ features }) => {
+          // const colors = ["red", "blue", "yellow", "green", "purple"];
+          const colors = ["red", "blue", "yellow", "green"];
+          const coloredStates = [];
+        
+          for (const feat of features) {
+            const touchingStates = features
+              .filter(f => geometryEngine.touches(feat.geometry, f.geometry))
+            
+            const colorsOfTouchingStates = coloredStates
+              .filter(cs => touchingStates.find(ts => ts.attributes.STATE_FIPS === cs.attributes.STATE_FIPS))
+              .map(cs => cs.attributes.color)
+
+            const color = colors.find(c => !colorsOfTouchingStates.includes(c));
+            coloredStates.push(new Graphic({
+              attributes: {...feat.attributes, color},
+              geometry: feat.geometry,
+              symbol: {
+                type: "simple-fill",
+                color,
+                outline: {width: 1, color: "white"}
+              }              
+            }))
+          }
+          
+          map.add(new GraphicsLayer({
+            graphics: coloredStates,
+            opacity: .5
+          }))
+        })
+
+        map.add(states);
+
+        
+      });
+    </script>
   </head>
 
   <body>
