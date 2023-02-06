@@ -8,104 +8,126 @@
     <script src="https://js.arcgis.com/4.20/"></script>
     <script>
     /**
-     * Tasks:
-     * 1. Fix the algorithm so that only 4 colors are used instead of 5
-     *    - Touching states may not be the same color
-     * 2. Add popups to the states and style them to match the provided design: `example-popup-style`
-     *    - Note the colored section matches the color of the state
-     * 3. Remove `example-design` div
-     */
-    require([
-        "esri/geometry/geometryEngine",
-        "esri/Graphic",
-        "esri/layers/FeatureLayer",
-        "esri/layers/GraphicsLayer",
-        "esri/Map",
-        "esri/views/MapView"
-    ], (
-        geometryEngine,
-        Graphic,
-        FeatureLayer,
-        GraphicsLayer,
-        Map,
-        MapView
-    ) => {
-        const map = new Map({
-        basemap: "topo-vector"
-    });
+ * Tasks:
+ * 1. Fix the algorithm so that only 4 colors are used instead of 5
+ *    - Touching states may not be the same color
+ * 2. Add popups to the states and style them to match the provided design: `example-popup-style`
+ *    - Note the colored section matches the color of the state
+ * 3. Remove `example-design` div
+ */
+require([
+  "esri/geometry/geometryEngine",
+  "esri/Graphic",
+  "esri/layers/FeatureLayer",
+  "esri/layers/GraphicsLayer",
+  "esri/Map",
+  "esri/views/MapView"
+], (
+  geometryEngine,
+  Graphic,
+  FeatureLayer,
+  GraphicsLayer,
+  Map,
+  MapView
+) => {
+  const map = new Map({
+    basemap: "topo-vector"
+  });
 
-    const view = new MapView({
-        container: "viewDiv",
-        constraints: {
-            snapToZoom: false
+  const view = new MapView({
+    container: "viewDiv",
+    constraints: {
+      snapToZoom: false
+    },
+    map: map,
+    zoom: 4.5,
+    center: [-95.7129, 37.0902]
+  });
+
+  const template = {
+    title: "{STATE_NAME} ({STATE_ABBR})",
+    content: [
+        {
+            type: "text",
+            text: "{SUB_REGION} Sub Region"
         },
-        map: map,
-        zoom: 4.5,
-        center: [-95.7129, 37.0902]
-    });
-
-     // Create the PopupTemplate and reference the two custom content elements
-     const template = {
-          title: "State: {STATE_ABBR}",
-          content: [
+        {
+        type: "fields",
+        fieldInfos: [
             {
-                type: "fields",
-                fieldInfos: [
-                    {
-                        fieldName: "STATE_ABBR",
-                        label: "State "
-                    }
-                ]
+            fieldName: "POPULATION",
+            label: "Population",
+            format: {
+                digitSeparator: true
             }
-          ]
-    }
+            },
+            {
+            fieldName: "SQMI",
+            label: "Area",
+            format: {
+                digitSeparator: true
+            }
+            },
+            {
+            fieldName: "POP_SQMI",
+            label: "Pop./Area",
+            format: {
+                digitSeparator: true
+            }
+            }              
+        ]
+        },
+        {
+            type: "text",
+            text: "Age Ranges"
+        },
+        {
+            type: "text",
+            text: "<table><tr><td>Less Than 20</td><td>21 - 64</td><td>More than 65</td></tr></table>",              
+            className: "ages"
+        }
+    ]       
+  };
 
-    const states = new FeatureLayer({
-        url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",        
-        definitionExpression: "NOT STATE_ABBR IN ('AK', 'HI', 'DC')",
-        popupTemplate: template
-    });
-
+  const states = new FeatureLayer({
+    url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
+    definitionExpression: "NOT STATE_ABBR IN ('AK', 'HI', 'DC')",
+    popupTemplate: template
+  });
     
-//     states.queryFeatures().then(({ features }) => {
-//         const colors = ["red", "blue", "yellow", "green", "purple"];
-//         const coloredStates = [];
-        
-//         for (const feat of features) {
-            
-//             const touchingStates = features
-//                 .filter(f => geometryEngine.touches(feat.geometry, f.geometry))
-      
-//             const colorsOfTouchingStates = coloredStates
-//                 .filter(cs => touchingStates.find(ts => ts.attributes.STATE_FIPS === cs.attributes.STATE_FIPS))
-//                 .map(cs => cs.attributes.color)
-
-//             const color = colors.find(c => !colorsOfTouchingStates.includes(c) );
-//             coloredStates.push(new Graphic({
-//                 attributes: {
-//                 ...feat.attributes,
-//                 color
-//             },
-        
-//             geometry: feat.geometry,
-//             symbol: {
-//                 type: "simple-fill",
-//                 color,
-//                 outline: {
-//                     width: 1,
-//                 color: "white"
-//             }
-//         }
-//       }))
-//     }
-
-//     map.add(new GraphicsLayer({
-//       graphics: coloredStates,
-//       opacity: .5
-//     }));
-
+// //   states.queryFeatures().then(({ features }) => {
+// //     const colors = ["red", "blue", "yellow", "green", "purple"];
+// //     const coloredStates = [];
+// //     for (const feat of features) {
+// //       const touchingStates = features
+// //         .filter(f => geometryEngine.touches(feat.geometry, f.geometry))
+// //       const colorsOfTouchingStates = coloredStates
+// //         .filter(cs => touchingStates.find(ts => ts.attributes.STATE_FIPS === cs.attributes.STATE_FIPS))
+// //         .map(cs => cs.attributes.color)
+// //       const color = colors.find(c => !colorsOfTouchingStates.includes(c) );
+// //       coloredStates.push(new Graphic({
+// //         attributes: {
+// //           ...feat.attributes,
+// //           color
+// //         },
+// //         geometry: feat.geometry,
+// //         symbol: {
+// //           type: "simple-fill",
+// //           color,
+// //           outline: {
+// //             width: 1,
+// //             color: "white"
+// //           }
+// //         }
+// //       }))
+// //     }
+// //     map.add(new GraphicsLayer({
+// //       graphics: coloredStates,
+// //       opacity: .5
+// //     }));
 //   });
 });
+
 
     </script>
     <style>

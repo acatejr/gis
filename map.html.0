@@ -1,0 +1,201 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Code Exercise A</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      .esri-popup__main-container {
+        background-color: white;
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        z-index: 1000;
+        border: 3px solid white;
+        box-shadow: 3px 3px 10px black;
+      }
+
+      .esri-popup__collapse-icon {
+        visibility: hidden;
+      }
+
+      .esri-popup__footer {
+        visibility: hidden;
+        height: 0;
+      }
+
+      .esri-feature-content {
+        text-align: center;
+        font-weight: bold;
+        background-color: silver;
+      }
+
+      .esri-feature__content-element {
+        margin-bottom: 0 !important;
+      }
+
+      table {
+        font-size: 1em;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.25/"></script>
+
+    <script>
+      require([
+        "esri/geometry/geometryEngine",
+        "esri/Map",
+        "esri/layers/FeatureLayer",
+        "esri/views/MapView",
+        "esri/widgets/Legend",
+        "esri/layers/GraphicsLayer",
+        "esri/Graphic"
+      ], (geometryEngine, Map, FeatureLayer, MapView, Legend, GraphicsLayer, Graphic) => {
+        // Create the map
+        const map = new Map({
+          basemap: "gray-vector"
+        });
+
+        // Create the MapView
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-95.7129, 37.0902],
+          zoom: 4.5
+        });
+
+        const template = {
+          title: "{STATE_NAME} ({STATE_ABBR})",
+          content: [
+            {
+              type: "text",
+              text: "{SUB_REGION} Sub Region"
+            },
+            {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "POPULATION",
+                label: "Population",
+                format: {
+                  digitSeparator: true
+                }
+              },
+              {
+                fieldName: "SQMI",
+                label: "Area",
+                format: {
+                  digitSeparator: true
+                }
+              },
+              {
+                fieldName: "POP_SQMI",
+                label: "Pop./Area",
+                format: {
+                  digitSeparator: true
+                }
+              }              
+            ]
+          },
+          {
+              type: "text",
+              text: "Age Ranges"
+          },
+          {
+              type: "text",
+              text: "<table><tr><td>Less Than 20</td><td>21 - 64</td><td>More than 65</td></tr></table>",              
+              className: "ages"
+          }
+        ]       
+        };
+
+        const states = new FeatureLayer({
+          url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
+          definitionExpression: "NOT STATE_ABBR IN ('AK', 'HI', 'DC')",
+          popupTemplate: template
+        });
+
+        // const colors = ["red", "blue", "yellow", "green"]
+        // states.queryFeatures().then(({ features }) => {
+        //   features.forEach((feature, idx) => {
+        //     const touchingStates = features.filter(f => geometryEngine.touches(feature.geometry, f.geometry))
+        //   })          
+        // })
+
+        states.queryFeatures().then(({ features }) => {
+          // const colors = ["red", "blue", "yellow", "green", "purple"];          
+          const colors = ["red", "blue", "yellow", "green"];          
+          const coloredStates = [];
+        
+          for (const feat of features) {
+            let availableColors = [-1, 0, 0, 0]
+
+            const touchingStates = features
+              .filter(f => geometryEngine.touches(feat.geometry, f.geometry))
+
+            let colorIdx = 0
+            touchingStates.forEach((element, i) => {
+              availableColors = [true, true, true, true]
+              colorIdx = i
+              if (colorIdx >= 0) {
+                availableColors[colorIdx] = false
+              }
+              
+              colorIdx = 0
+              availableColors.every((element, j) => {
+                if (element) {
+                  colorIdx = j
+                  return false
+                }
+                return true
+              })
+
+              // console.log(colorIdx, i)
+              console.dir(availableColors)
+            })
+            
+            const colorsOfTouchingStates = coloredStates
+              .filter(cs => touchingStates.find(ts => ts.attributes.STATE_FIPS === cs.attributes.STATE_FIPS))
+              .map(cs => cs.attributes.color)
+
+            // const color = colors.find(c => !colorsOfTouchingStates.includes(c));
+            const color = colors[colorIdx]
+
+            coloredStates.push(new Graphic({
+              attributes: {...feat.attributes, color},
+              geometry: feat.geometry,
+              symbol: {
+                type: "simple-fill",
+                color,
+                outline: {width: 1, color: "white"}
+              }              
+            }))
+          }
+          
+          map.add(new GraphicsLayer({
+            graphics: coloredStates,
+            opacity: .5
+          }))
+        })
+
+        map.add(states);
+
+        
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

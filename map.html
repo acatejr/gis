@@ -43,12 +43,34 @@
         margin-bottom: 0 !important;
       }
 
-      table {
-        font-size: 1em;
+      .border {
+        background-color: black;
+        height: .3em;
+      }
+
+      .thin-border {
+        background-color: black;
+        height: .15em;
+      }
+
+      .demographics {
+        background-color: white;
+        width: 100%;
+      }
+
+      .demo-label {
+        border-right: 1px solid;
+        padding-right: 1px;
       }
     </style>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+
+    <script type="text/plain" id="under20">
+      var under20 = $feature.AGE_UNDER5;
+      return(under20);
+    </script>
+
     <script src="https://js.arcgis.com/4.25/"></script>
 
     <script>
@@ -59,8 +81,9 @@
         "esri/views/MapView",
         "esri/widgets/Legend",
         "esri/layers/GraphicsLayer",
-        "esri/Graphic"
-      ], (geometryEngine, Map, FeatureLayer, MapView, Legend, GraphicsLayer, Graphic) => {
+        "esri/Graphic",
+        "esri/popup/ExpressionInfo"
+      ], (geometryEngine, Map, FeatureLayer, MapView, Legend, GraphicsLayer, Graphic, ExpressionInfo) => {
         // Create the map
         const map = new Map({
           basemap: "gray-vector"
@@ -74,70 +97,184 @@
           zoom: 4.5
         });
 
-        /*************************************************************
-         * The PopupTemplate content is the text that appears inside the
-         * popup. {fieldName} can be used to reference the value of an
-         * attribute of the selected feature. HTML elements can be used
-         * to provide structure and styles within the content. The
-         * fieldInfos property is an array of objects (each object representing
-         * a field) that is use to format number fields and customize field
-         * aliases in the popup and legend.
-         **************************************************************/
-
         const template = {
-          // autocasts as new PopupTemplate()
-          title: "{STATE_NAME} ({STATE_ABBR})",
-          content: [
-            {
-              type: "text",
-              text: "{SUB_REGION} Sub Region"
-            },
-            {
-            type: "fields",
-            fieldInfos: [
-              {
-                fieldName: "POPULATION",
-                label: "Population",
-                format: {
-                  digitSeparator: true
-                }
-              },
-              {
-                fieldName: "SQMI",
-                label: "Area",
-                format: {
-                  digitSeparator: true
-                }
-              },
-              {
-                fieldName: "POP_SQMI",
-                label: "Pop./Area",
-                format: {
-                  digitSeparator: true
-                }
-              }              
-            ]
-          },
-          {
-              type: "text",
-              text: "Age Ranges"
-          },
-          {
-              type: "text",
-              text: "<table><tr><td>Less Than 20</td><td>21 - 64</td><td>More than 65</td></tr></table>",              
-              className: "ages"
-          }
-        ]       
-        };
+          title: "{STATE_NAME} ({STATE_ABBR})"
+        }
+
+        function getUnder20(graphic) {
+          console.dir(graphic)
+          return ""
+        }
+
+        let tdStyle = 'padding-left: 45px; padding-right: 5px; text-align: right; border-right-width: 1px; border-right-style: solid;'
+        let popupContent = `
+        <div style='font-weight: bold; text-align: center; font-size: 1.2em; !important'>{SUB_REGION} Sub Region</div>
+        <table width='100%' style='background-color: white;'>
+          <tbody>
+            <tr><td style='${tdStyle}'>Population</td><td>{$feature.population}</td><td>&nbsp;</td></tr>
+            <tr><td style='${tdStyle}'>Area</td><td>{SQMI}</td><td> mi&sup2;</td></tr>
+            <tr><td style='${tdStyle}'>Pop./Area</td><td>{POP_SQMI}</td><td>/mi&sup2;</td></tr>
+          </tbody>
+        </table>
+        <div style='font-weight: bold; text-align: center; font-size: 1.2em; !important'>Age Ranges</div>
+        <table>
+          <thead>
+            <tr>
+              <th style='text-align: center;'>Less Than 20</th>
+              <th style='text-align: center;'>21 - 64</th>
+              <th style='text-align: center;'>More than 65</th>
+            </tr>
+            <tr>
+              <td></td>
+            </tr>
+          </thead>
+        </table>
+        `
+
+        template.content = popupContent
 
         // Reference the popupTemplate instance in the
         // popupTemplate property of FeatureLayer
+        var expressionInfos = [
+          {
+            name: "under20",            
+            expression: `return($feature.AGE_UNDER5)`
+          }
+        ]
+
         const states = new FeatureLayer({
           url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
           definitionExpression: "NOT STATE_ABBR IN ('AK', 'HI', 'DC')",
-          popupTemplate: template
+          popupTemplate: {
+            title: "{STATE_NAME} ({STATE_ABBR})",
+            expressionInfos: [
+              {
+                name: "population",
+                label: "Population",
+                expression: "$feature.POPULATION"
+              },
+              {
+                name: "area",
+                title: "Area",
+                expression: "Round($feature.SQMI, 2)",
+              },
+              {
+                name: "pop_density",
+                title: "Pop./Area",
+                expression: "Round($feature.POPULATION / $feature.SQMI, 1)"
+              },
+              {
+                name: "under20",
+                title: "Less Than 20",
+                expression: "$feature.AGE_UNDER5 + $feature.AGE_5_9 + $feature.AGE_10_14 + $feature.AGE_15_19"
+              },
+              {
+                name: "ages_21_64",
+                expression: "$feature.AGE_20_24 + $feature.AGE_25_34 + $feature.AGE_35_44 + $feature.AGE_55_64"
+              },
+              {
+                name: "over65",
+                expression: "$feature.AGE_65_74 + $feature.AGE_75_84 + $feature.AGE_85_UP"
+              },
+            ],
+            content: [
+              {
+                type: "text",
+                text: "{SUB_REGION} Sub Region"
+              },
+              {
+                type: "text",
+                text: "<div class='border'></div>"
+              },
+              {
+                type: "text",
+                text: `
+                <table class='demographics'>
+                <tr>
+                  <td class='demo-label' align=right>Population&nbsp;</td><td align=left style='padding: 0;'>&nbsp;{expression/population}</td><td>&nbsp;</td>                  
+                </tr>
+                <tr>
+                  <td align=right class='demo-label'>Area&nbsp;</td><td align=left style='padding: 0;'>&nbsp;{expression/area}</td><td>mi&sup2;</td>
+                </tr>
+                <tr>
+                  <td align=right class='demo-label'>Pop./Area&nbsp;</td><td align=left>&nbsp;{expression/pop_density}</td><td>/mi&sup2;</td>
+                </tr>
+                </table>
+                `
+              },
+              {
+                type: "text",
+                text: "<div class='border'></div>"
+              },
+              {
+                type: "text",
+                text: "<div style='text-align: center; background-color: #cfd3d4;'>Age Ranges</div>"
+              },
+              {
+                type: "text",
+                text: "<div class='thin-border'></div>"
+              },
+              {
+                type: "text",
+                text: `
+                <table width='100%' style='background-color: #ededed;'>
+                  <tbody>
+                    <tr style='background-color: #ededed; border-style: none;'>
+                      <td style='text-align: center; border-style: none;'>Less Than 20</td>
+                      <td style='text-align: center; border-style: none;'>21 -64</td>
+                      <td style='text-align: center; border-style: none;'>More than 65</td>
+                    </tr>                    
+
+                    <tr style='background-color: white; text-align: center;'>
+                      <td style='border-right: solid; border-right-width: 1px;'>{expression/under20}</td>
+                      <td style='border-right: solid; border-right-width: 1px;'>{expression/ages_21_64}</td>
+                      <td style=''>{expression/over65}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                `
+              }
+
+            ]
+          }
         });
 
+        
+        // states.queryFeatures().then(({ features }) => {
+        //   const coloredStates = []          
+        //   let colors = new Array(features.length).fill(-1)
+        //   colors[0] = 0
+        //   let stateCount = 0
+
+        //   for (const feat of features) {
+        //     let availability = new Array(features.length).fill(true) 
+        //     const neighbors = features.filter(f => geometryEngine.touches(feat.geometry, f.geometry))
+            
+        //     let neighborIdx = 0
+        //     let colorIdx = 0
+        //     for (const neighbor of neighbors) {              
+        //       colorIdx = colors[neighborIdx]
+        //       if (colorIdx >= 0) {
+        //         availability[colorIdx] = false
+        //       }
+        //       neighborIdx++
+        //     }
+
+        //     colorIdx = 0
+        //     for (let i = 0; i < availability.length; i++) {
+        //       if (availability[i] === true) {
+        //         colorIdx = i
+        //         break
+        //       }
+        //     }
+
+        //     colors[stateCount] = colorIdx
+        //     stateCount++
+        //   }
+
+        // })
+        
+ 
         states.queryFeatures().then(({ features }) => {
           // const colors = ["red", "blue", "yellow", "green", "purple"];
           const colors = ["red", "blue", "yellow", "green"];

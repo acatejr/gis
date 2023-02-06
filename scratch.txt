@@ -1,3 +1,50 @@
+const template = {
+          title: "{STATE_NAME} ({STATE_ABBR})",
+        //   content: [
+        //     {
+        //       type: "text",
+        //       text: "{SUB_REGION} Sub Region"
+        //     },
+        //     {
+        //     type: "fields",
+        //     fieldInfos: [
+        //       {
+        //         fieldName: "POPULATION",
+        //         label: "Population",
+        //         format: {
+        //           digitSeparator: true
+        //         }
+        //       },
+        //       {
+        //         fieldName: "SQMI",
+        //         label: "Area",
+        //         format: {
+        //           digitSeparator: true
+        //         }
+        //       },
+        //       {
+        //         fieldName: "POP_SQMI",
+        //         label: "Pop./Area",
+        //         format: {
+        //           digitSeparator: true
+        //         }
+        //       }              
+        //     ]
+        //   },
+        //   {
+        //       type: "text",
+        //       text: "Age Ranges"
+        //   },
+        //   {
+        //       type: "text",
+        //       text: ({graphic}) => {
+        //         return "<table><tr><td>Less Than 20</td><td>21 - 64</td><td>More than 65</td></tr></table>"
+        //       }
+        //   }
+        // ]       
+        };
+
+
 <html lang="en">
   <head>
     <meta charset="utf-8" />
